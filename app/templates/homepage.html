@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="">
+  <meta name="author" content="">
+  <title>Homepage</title>
+  <link href="../static/css/bootstrap.min.css" rel="stylesheet">
+  <link href="../static/css/animate.min.css" rel="stylesheet">
+  <link href="../static/css/font-awesome.min.css" rel="stylesheet">
+  <link href="../static/css/lightbox.css" rel="stylesheet">
+  <link href="../static/css/main.css" rel="stylesheet">
+  <link id="../static/css-preset" href="../static/css/presets/preset1.css" rel="stylesheet">
+  <link href="../static/css/responsive.css" rel="stylesheet">
+  <link rel="stylesheet" href="../static/css/common.css?v=2"/>
+  <script src="../static/js/jquery-3.2.1.js"></script>
+
+  <!--[if lt IE 9]>
+    <script src="../static/js/html5shiv.js"></script>
+    <script src="../static/js/respond.min.js"></script>
+  <![endif]-->
+
+  <link rel="shortcut icon" href="../static/images/favicon.ico">
+<script>
+  //添加，批量添加
+  var w, h, className;
+
+  function getSrceenWH() {
+    w = $(window).width();
+    h = $(window).height();
+    $('#dialogBg').width(w).height(h);
+  }
+
+  window.onresize = function () {
+    getSrceenWH();
+  }
+  $(window).resize();
+  //添加
+  $(function () {
+    getSrceenWH();
+
+    //开始登录
+    $('.fadeInUpBig').click(function () {
+      className = $(this).attr('class');
+      $('#dialogBg').fadeIn(300);
+      $('#dialogAdd').removeAttr('class').addClass('animated ' + className + '').fadeIn();
+    });
+    //关闭
+    $('.claseDialogBtn').click(function () {
+      $('#dialogBg').fadeOut(300, function () {
+        $('#dialogAdd').addClass('bounceOutUp').fadeOut();
+        $('#dialogReg').addClass('bounceOutUp').fadeOut();
+      });
+    });
+    //注册
+    $('#registerBtn').click(function () {
+        $('#dialogAdd').addClass('bounceOutUp').fadeOut(300, function () {
+          $('#dialogReg').removeAttr('class').addClass('animated ' + className + '').fadeIn();
+        });
+    });
+  });
+</script>
+<script>
+  data = "{{messages}}";
+  $(document).ready(function () {
+    if(data.length!=0){
+      alert(data);
+    }
+  });
+</script>
+<style>
+    .submitBtn{
+        margin: 10px;
+    }
+  #dialogAdd {
+    width: 322px;
+    left: 50%;
+    top: 40%;
+  }
+
+  #dialogReg {
+    width: 322px;
+    left: 50%;
+    top: 40%;
+  }
+
+  #verifyDisplay {
+    position: absolute;
+    left: 125px;
+  }
+
+  #verifyDisplay2 {
+    position: absolute;
+    left: 125px;
+  }
+</style>
+</head><!--/head-->
+
+<body>
+
+
+
+<div id="dialogBg"></div>
+
+<div id="dialogAdd" class="animated " style="width: 300px;height: auto;">
+    <img class="dialogIco" width="50" height="50" src="../static/images/ico.png" alt=""/>
+    <div class="dialogTop">
+        <a href="javascript:;" class="claseDialogBtn">关闭</a>
+    </div>
+    <div id="verifyDisplay"></div>
+    <form action="/login" method="get" id="addForm" enctype="multipart/form-data">
+        <ul class="editInfos">
+            <li><label>* 用户：<input onkeyup="judgeExist(this.value)" type="text" name="username" class="ipt"/></label>
+            </li>
+            <li><label>* 密码：<input type="password" name="password" class="ipt"/></label></li>
+            <li>
+                <!--<input type="submit" value="登录" class="submitBtn"/>-->
+                <button type="submit" class="submitBtn">登录</button>
+<!--                <button id="registerBtn" class="submitBtn" type="button">注册</button>-->
+            </li>
+        </ul>
+    </form>
+</div>
+
+<div id="dialogReg" class="animated" style="width: 300px;height: auto;">
+    <img class="dialogIco" width="50" height="50" src="../static/images/ico.png" alt=""/>
+    <div class="dialogTop">
+        <a href="javascript:;" class="claseDialogBtn">关闭</a>
+    </div>
+    <div id="verifyDisplay2"></div>
+    <form action="/register" method="get" id="registerForm" enctype="multipart/form-data">
+        <ul class="editInfos">
+            <li><label>* 用户：<input onkeyup="judgeExist(this.value)" type="text" name="username" class="ipt"/></label>
+            </li>
+            <li><label>* 密码：<input type="password" name="password" class="ipt"/></label></li>
+            <li style="text-align: left;"><label>* 性别：
+                <input type="radio" name="gender" class="ipt" value="1" style="margin-left: 20px;"/>男
+                <input type="radio" name="age" class="ipt" value="0" style="margin-left: 20px;"/>女
+            </label></li>
+            <li><label>* 年龄：<input type="number" name="age" class="ipt"/></label></li>
+            <li><label> 职业：<input type="text" name="profession" class="ipt"/></label></li>
+            <li><label> 补充：<input type="text" name="description" class="ipt"/></label></li>
+            <li><input type="submit" value="确定" class="submitBtn"/></li>
+        </ul>
+    </form>
+</div>
+  <!--.preloader-->
+  <div class="preloader"> <i class="fa fa-circle-o-notch fa-spin"></i></div>
+  <!--/.preloader-->
+
+  <header id="home">
+    <div id="home-slider" class="carousel slide carousel-fade" data-ride="carousel">
+      <div class="carousel-inner">
+        <div class="item active" style="background-image: url(../static/images/slider/1_1.png)">
+          <div class="caption">
+            <h1 class="animated fadeInLeftBig">欢迎访问 <span>AI机器人lane</span></h1>
+            <p class="animated fadeInRightBig">AI for every one</p>
+
+            <a data-scroll class="btn btn-start animated fadeInUpBig">Start now</a>
+          </div>
+        </div>
+        <div class="item" style="background-image: url(../static/images/slider/2.jpg)">
+          <div class="caption">
+            <h1 class="animated fadeInLeftBig">来自人工智能模型 <span>激情对聊</span></h1>
+            <p class="animated fadeInRightBig">由openai提供技术支持</p>
+
+            <a data-scroll class="btn btn-start animated fadeInUpBig">Start now</a>
+          </div>
+        </div>
+        <div class="item" style="background-image: url(../static/images/slider/1_3.jpg)">
+          <div class="caption">
+            <h1 class="animated fadeInLeftBig">来自人工智能模型 <span>代码答疑</span></h1>
+            <p class="animated fadeInRightBig">gpt-3.5-turbo</p>
+
+            <a data-scroll class="btn btn-start animated fadeInUpBig">Start now</a>
+          </div>
+        </div>
+      </div>
+      <a class="left-control" href="#home-slider" data-slide="prev"><i class="fa fa-angle-left"></i></a>
+      <a class="right-control" href="#home-slider" data-slide="next"><i class="fa fa-angle-right"></i></a>
+
+      <a id="tohash" href="#services"><i class="fa fa-angle-down"></i></a>
+
+    </div><!--/#home-slider-->
+    <div class="main-nav">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+        </div>
+        <div class="collapse navbar-collapse">
+          <ul class="nav navbar-nav navbar-right">
+            <li class="scroll active"><a href="#home">首页</a></li>
+            <li class="scroll"><a href="#services">功能与模块</a></li>
+            <li class="scroll"><a href="#about-us">产品介绍</a></li>
+            <li class="scroll"><a href="#portfolio">技术支持</a></li>
+            <li class="scroll"><a href="#team">团队介绍</a></li>
+
+            <li class="scroll"><a href="#contact">联系我们</a></li>
+          </ul>
+        </div>
+      </div>
+    </div><!--/#main-nav-->
+  </header><!--/#home-->
+  <section id="services">
+    <div class="container">
+      <div class="heading wow fadeInUp" data-wow-duration="1000ms" data-wow-delay="300ms">
+        <div class="row">
+          <div class="text-center col-sm-8 col-sm-offset-2">
+            <h2>功能与模块</h2>
+            <p>完成注册登陆后，你可能会对以下功能模块感兴趣。</p>
+          </div>
+        </div>
+      </div>
+      <div class="text-center our-services">
+        <div class="row">
+          <div class="col-sm-4 wow fadeInDown" data-wow-duration="1000ms" data-wow-delay="300ms">
+            <div class="service-icon">
+              <i class="fa fa-flask"></i>
+            </div>
+            <div class="service-info">
+              <h3>对话聊天</h3>
+              <p>相比与openai的v1版本，本次开放的chatGPT的API不再是单纯的问答，可具备对话聊天的功能</p>
+            </div>
+          </div>
+          <div class="col-sm-4 wow fadeInDown" data-wow-duration="1000ms" data-wow-delay="450ms">
+            <div class="service-icon">
+              <i class="fa fa-umbrella"></i>
+            </div>
+            <div class="service-info">
+              <h3>数据管理</h3>
+              <p>对于每一个接入的用户，有一套完善的数据管理系统，你没有权利查看，当然我也不会窥探你隐私我保证</p>
+            </div>
+          </div>
+
+          <div class="col-sm-4 wow fadeInDown" data-wow-duration="1000ms" data-wow-delay="550ms">
+            <div class="service-icon">
+              <i class="fa fa-cloud"></i>
+            </div>
+            <div class="service-info">
+              <h3>可视化展示</h3>
+              <p>基于成熟的文本生成模型，可融合数字人生成技术，进一步提升数字科技带给人的视觉震撼，待开发</p>
+            </div>
+          </div>
+          <div class="col-sm-4 wow fadeInUp" data-wow-duration="1000ms" data-wow-delay="650ms">
+            <div class="service-icon">
+              <i class="fa fa-coffee"></i>
+            </div>
+            <div class="service-info">
+              <h3>语音模块</h3>
+              <p>基于成熟的文本生成模块，可融合语音生成技术，进一步提升数字科技带给人的听觉震撼，待开发</p>
+            </div>
+          </div>
+          <div class="col-sm-4 wow fadeInUp" data-wow-duration="1000ms" data-wow-delay="750ms">
+            <div class="service-icon">
+              <i class="fa fa-bitbucket"></i>
+            </div>
+            <div class="service-info">
+              <h3>加强学习</h3>
+              <p>很遗憾，根据chatGPT官方文档，自2023年3月1日起已经关闭了参数微调的功能。</p>
+            </div>
+          </div>
+          <div class="col-sm-4 wow fadeInUp" data-wow-duration="1000ms" data-wow-delay="850ms">
+            <div class="service-icon">
+              <i class="fa fa-gift"></i>
+            </div>
+            <div class="service-info">
+              <h3>更多...</h3>
+              <p>更多功能将会陆续上线，欢迎您的使用并提出宝贵的意见。</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section><!--/#services-->
+  <section id="about-us" class="parallax">
+    <div class="container">
+      <div class="row">
+        <div class="col-sm-6">
+          <div class="about-info wow fadeInUp" data-wow-duration="1000ms" data-wow-delay="300ms">
+            <h2>产品介绍</h2>
+            <p>&nbsp&nbsp过去十年是互联网高速发展的十年，2023年，是人工智能大模型的元年，得益于chatGPT的爆火，真正的让世人看到了人工智能不再是人工智障</p>
+            <p>&nbsp&nbspChatGPT（全名：Chat Generative Pre-trained Transformer），美国OpenAI研发的聊天机器人程序，于2022年11月30日发布。ChatGPT是人工智能技术驱动的自然语言处理工具，它能够通过理解和学习人类的语言来进行对话，还能根据聊天的上下文进行互动，真正像人类一样来聊天交流，甚至能完成撰写邮件、视频脚本、文案、翻译、代码，写论文等任务</p>
+            <p>&nbsp&nbsp机器人lane就是基于API接口实现的在国内即可正常访问的chatGPT文本生成模型</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section><!--/#about-us-->
+
+  <section id="portfolio">
+    <div class="container">
+      <div class="row">
+        <div class="heading text-center col-sm-8 col-sm-offset-2 wow fadeInUp" data-wow-duration="1000ms" data-wow-delay="300ms">
+          <h2>技术支持</h2>
+          <p>本网站依赖计算机互联网技术，通过调用chatGPT的API接口进行可视化展示，通过成熟的计算机网络计算，使得国内用户可以流畅的访问国外节点</p>
+        </div>
+      </div>
+    </div>
+    <div class="container-fluid">
+      <div class="row">
+        <div class="col-sm-3">
+          <div class="folio-item wow fadeInLeftBig" data-wow-duration="1000ms" data-wow-delay="400ms">
+            <div class="folio-image">
+              <img class="img-responsive" src="../static/images/portfolio/1_2_2.jpg" alt="">
+            </div>
+            <div class="overlay">
+              <div class="overlay-content">
+                <div class="overlay-text">
+                  <div class="folio-info">
+                    <h3>人工智能</h3>
+                    <p>Regression algorithm</p>
+                  </div>
+                  <div class="folio-overview">
+                    <span class="folio-link"><a class="folio-read-more" href="#" data-single_url="portfolio-single.html" ><i class="fa fa-link"></i></a></span>
+                    <span class="folio-expand"><a href="../static/images/portfolio/portfolio-details-1.jpg" data-lightbox="portfolio"><i class="fa fa-search-plus"></i></a></span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-sm-3">
+          <div class="folio-item wow fadeInRightBig" data-wow-duration="1000ms" data-wow-delay="500ms">
+            <div class="folio-image">
+              <img class="img-responsive" src="../static/images/portfolio/1_2_3.jpg" alt="">
+            </div>
+            <div class="overlay">
+              <div class="overlay-content">
+                <div class="overlay-text">
+                  <div class="folio-info">
+                    <h3>可视化</h3>
+                    <p>Visualization</p>
+                  </div>
+                  <div class="folio-overview">
+                    <span class="folio-link"><a class="folio-read-more" href="#" data-single_url="portfolio-single.html" ><i class="fa fa-link"></i></a></span>
+                    <span class="folio-expand"><a href="../static/images/portfolio/portfolio-details-2.jpg" data-lightbox="portfolio"><i class="fa fa-search-plus"></i></a></span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-sm-3">
+          <div class="folio-item wow fadeInLeftBig" data-wow-duration="1000ms" data-wow-delay="800ms">
+            <div class="folio-image">
+              <img class="img-responsive" src="../static/images/portfolio/1_2_4.jpg" alt="">
+            </div>
+            <div class="overlay">
+              <div class="overlay-content">
+                <div class="overlay-text">
+                  <div class="folio-info">
+                    <h3>数据安全</h3>
+                    <p>Data security</p>
+                  </div>
+                  <div class="folio-overview">
+                    <span class="folio-link"><a class="folio-read-more" href="#" data-single_url="portfolio-single.html" ><i class="fa fa-link"></i></a></span>
+                    <span class="folio-expand"><a href="../static/images/portfolio/portfolio-details-3.jpg" data-lightbox="portfolio"><i class="fa fa-search-plus"></i></a></span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-sm-3">
+          <div class="folio-item wow fadeInRightBig" data-wow-duration="1000ms" data-wow-delay="900ms">
+            <div class="folio-image">
+              <img class="img-responsive" src="../static/images/portfolio/1_2_5.jpg" alt="">
+            </div>
+            <div class="overlay">
+              <div class="overlay-content">
+                <div class="overlay-text">
+                  <div class="folio-info">
+                    <h3>数据来源</h3>
+                    <p>Data source</p>
+                  </div>
+                  <div class="folio-overview">
+                    <span class="folio-link"><a class="folio-read-more" href="#" data-single_url="portfolio-single.html" ><i class="fa fa-link"></i></a></span>
+                    <span class="folio-expand"><a href="../static/images/portfolio/portfolio-details-4.jpg" data-lightbox="portfolio"><i class="fa fa-search-plus"></i></a></span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div id="portfolio-single-wrap">
+      <div id="portfolio-single">
+      </div>
+    </div><!-- /#portfolio-single-wrap -->
+  </section><!--/#portfolio-->
+
+  <section id="team">
+    <div class="container">
+      <div class="row">
+        <div class="heading text-center col-sm-8 col-sm-offset-2 wow fadeInUp" data-wow-duration="1200ms" data-wow-delay="300ms">
+          <h2>团队介绍</h2>
+          <p>团队目前为1人，研究生毕业于上海理工大学</p>
+        </div>
+      </div>
+      <div class="team-members">
+        <div class="row">
+          <div class="col-sm-3">
+          </div>
+          <div class="col-sm-3">
+            <div class="team-member wow flipInY" data-wow-duration="1000ms" data-wow-delay="500ms">
+              <div class="member-image">
+                <img class="img-responsive" src="../static/images/team/lane.gif" alt="">
+              </div>
+              <div class="member-info">
+                <h3>laneeee</h3>
+                <h4>产品负责人</h4>
+                <p>这是我的主页所以只有我一个人hhhhhhh</p>
+              </div>
+              <div class="social-icons">
+              </div>
+            </div>
+          </div>
+          <div class="col-sm-3">
+            <div class="team-member wow flipInY" data-wow-duration="1000ms" data-wow-delay="800ms">
+              <div class="member-image">
+                <img class="img-responsive" src="../static/images/team/bla.jpg" alt="">
+              </div>
+              <div class="member-info">
+                <h3>xxx</h3>
+                <h4>团队成员</h4>
+                <p>waiting for you</p>
+              </div>
+              <div class="social-icons">
+              </div>
+            </div>
+          </div>
+          <div class="col-sm-3">
+          </div>
+        </div>
+      </div>
+    </div>
+  </section><!--/#team-->
+
+  <section id="features" class="parallax">
+    <div class="container">
+      <div class="row count">
+        <div class="col-sm-3 col-xs-6 wow fadeInLeft" data-wow-duration="1000ms" data-wow-delay="300ms">
+          <i class="fa fa-user"></i>
+          <h3 class="timer">0</h3>
+          <p>注册人数</p>
+        </div>
+        <div class="col-sm-3 col-xs-6 wow fadeInLeft" data-wow-duration="1000ms" data-wow-delay="500ms">
+          <i class="fa fa-desktop"></i>
+          <h3 class="timer">0</h3>
+          <p>好评数</p>
+        </div>
+        <div class="col-sm-3 col-xs-6 wow fadeInLeft" data-wow-duration="1000ms" data-wow-delay="700ms">
+          <i class="fa fa-trophy"></i>
+          <h3 class="timer">0</h3>
+          <p>得奖数目</p>
+        </div>
+        <div class="col-sm-3 col-xs-6 wow fadeInLeft" data-wow-duration="1000ms" data-wow-delay="900ms">
+          <i class="fa fa-comment-o"></i>
+          <h3>24</h3>
+          <p>适用范围</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="contact">
+
+    <div id="contact-us" class="parallax">
+      <div class="container">
+        <div class="row">
+          <div class="heading text-center col-sm-8 col-sm-offset-2 wow fadeInUp" data-wow-duration="1000ms" data-wow-delay="300ms">
+            <h2>联系我们</h2>
+            <p>如果您在产品使用过程中有一些宝贵的建议，或者想与我们合作，非常欢迎与我们联系。</p>
+          </div>
+        </div>
+        <div class="contact-form wow fadeIn" data-wow-duration="1000ms" data-wow-delay="600ms">
+          <div class="row">
+            <div class="col-sm-6">
+              <form id="main-contact-form" name="contact-form" method="post" action="#">
+                <div class="row  wow fadeInUp" data-wow-duration="1000ms" data-wow-delay="300ms">
+                  <div class="col-sm-6">
+                    <div class="form-group">
+                      <input type="text" name="name" class="form-control" placeholder="姓名" required="required">
+                    </div>
+                  </div>
+                  <div class="col-sm-6">
+                    <div class="form-group">
+                      <input type="email" name="email" class="form-control" placeholder="邮箱地址" required="required">
+                    </div>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <input type="text" name="subject" class="form-control" placeholder="主题" required="required">
+                </div>
+                <div class="form-group">
+                  <textarea name="message" id="message" class="form-control" rows="4" placeholder="您有什么想告知我们..." required="required"></textarea>
+                </div>
+                <div class="form-group">
+                  <button type="submit" class="btn-submit">发送</button>
+                </div>
+              </form>
+            </div>
+            <div class="col-sm-6">
+              <div class="contact-info wow fadeInUp" data-wow-duration="1000ms" data-wow-delay="300ms">
+                <p>官方唯一指定联系方式，欢迎您的来电。</p>
+                <ul class="address">
+                  <li><i class="fa fa-map-marker"></i> <span> 地址:</span> 上海市杨浦区-上海理工大学</li>
+                  <li><i class="fa fa-phone"></i> <span> 电话:</span> +86xxxxxxxxx  </li>
+                  <li><i class="fa fa-envelope"></i> <span> 邮箱:</span><a href="14598684256@163.com"> blockchain137@gmail.com</a></li>
+                  <li><i class="fa fa-globe"></i> <span> 网址:</span> <a href="#">www.xxx.com</a></li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <script type="text/javascript" src="../static/js/jquery.js"></script>
+  <script type="text/javascript" src="../static/js/bootstrap.min.js"></script>
+  <script type="text/javascript" src="../static/js/jquery.inview.min.js"></script>
+  <script type="text/javascript" src="../static/js/wow.min.js"></script>
+  <script type="text/javascript" src="../static/js/mousescroll.js"></script>
+  <script type="text/javascript" src="../static/js/smoothscroll.js"></script>
+  <script type="text/javascript" src="../static/js/jquery.countTo.js"></script>
+  <script type="text/javascript" src="../static/js/lightbox.min.js"></script>
+  <script type="text/javascript" src="../static/js/main.js"></script>
+
+</body>
+</html>
