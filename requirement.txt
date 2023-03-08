@@ -1,0 +1,5 @@
+uvicorn
+starlette-session
+fastapi
+Jinja2
+openai
