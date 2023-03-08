@@ -36,13 +36,14 @@
         .manageshow {
             display: none;
         }
-        #body{
+
+        #body {
             overflow-y: hidden;
         }
 
         #chat_div {
             display: block;
-            
+
             width: 100%;
             /* height: 60%; */
             padding: 10px;
@@ -70,9 +71,46 @@
 
         #sent_button {
             float: right;
+            padding: 0;
             width: 9%;
             min-width: 20px;
             height: 100%;
+        }
+
+        .assistant_div {
+            width: 100%;
+            height: auto;
+            float: left;
+            padding: 5px;
+        }
+
+        .user_div {
+            width: 100%;
+            height: auto;
+            float: right;
+            padding: 5px;
+        }
+
+        .user_content {
+            background-color: green;
+            max-width: 80%;
+            color: beige;
+            padding: 10px;
+            border-radius: 10px;
+            float: right;
+            font-size: large;
+            font-family: inherit;
+        }
+
+        .assistant_content {
+            background-color: green;
+            max-width: 80%;
+            color: beige;
+            padding: 10px;
+            border-radius: 10px;
+            float: left;
+            font-size: large;
+            font-family: inherit;
         }
     </style>
 </head>
@@ -303,43 +341,6 @@
             </div>
 
             <div class="content-wrapper">
-                <style>
-                    .assistant_div {
-                        width: 100%;
-                        height: auto;
-                        float: left;
-                        padding: 5px;
-                    }
-
-                    .user_div {
-                        width: 100%;
-                        height: auto;
-                        float: right;
-                        padding: 5px;
-                    }
-
-                    .user_content {
-                        background-color: green;
-                        max-width: 80%;
-                        color: beige;
-                        padding: 10px;
-                        border-radius: 10px;
-                        float: right;
-                        font-size: large;
-                        font-family: inherit;
-                    }
-
-                    .assistant_content {
-                        background-color: green;
-                        max-width: 80%;
-                        color: beige;
-                        padding: 10px;
-                        border-radius: 10px;
-                        float: left;
-                        font-size: large;
-                        font-family: inherit;
-                    }
-                </style>
                 <div id="chat_div" , class="card content-wrapper card-table-border-none">
                     <div id="messages_div"></div>
                     <div id="edit_div">
@@ -389,8 +390,8 @@
 
     <script>
         var pageHeight = Math.max($('body').height(), $('body')[0].scrollHeight, $('body')[0].offsetHeight, $(window).height(), $(document).height());
-        
-        $("#messages_div").css("max-height", pageHeight*0.6+"px")
+
+        $("#messages_div").css("max-height", pageHeight * 0.6 + "px")
     </script>
 
     <!--个人信息-->
