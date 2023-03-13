@@ -18,6 +18,7 @@ class Member:
     used_token = 0
     cur_used_token = 0
     messages = []
+    max_communication = 3
     piece = 0.002
 
     def __init__(self, name):
@@ -73,7 +74,15 @@ class Member:
         return completion
 
     def add_content(self, prompt, role="user"):
+        if len(self.messages) > self.max_communication * 2:
+            if self.messages[0]["role"] == "system":
+                self.messages = [self.messages[0]] + self.messages[3:]
+            else:
+                self.messages = self.messages[2:]
         self.messages.append({"role": role, "content": prompt})
+            
+
+
 
     def parse_response(self, response):
         total_tokens = response.usage.total_tokens

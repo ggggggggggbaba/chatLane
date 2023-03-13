@@ -56,6 +56,7 @@ def chat(request: Request, data: str = ""):
     mb.add_content(prompt, "user")
     response = mb.chat()
     content = mb.parse_response(response)
+    request.session.update({"member_str": mb.class2jsonstr()})
     return_dict["status"] = "1"
     return_dict["content"] = content
     return json.dumps(return_dict)
