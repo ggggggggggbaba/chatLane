@@ -1,13 +1,18 @@
+# -*- coding: UTF-8 -*-
 import json
-
 import uvicorn
-from fastapi import Request, FastAPI
+from fastapi import Request, FastAPI, File, UploadFile
 from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import RedirectResponse
 from starlette_session import SessionMiddleware
 import html
 from chat_api import Member
+import os
+from zhconv import convert
+import chardet
+
 
 # Config
 Members_list = {"eva": ["123", "../members/eva.json"]}
@@ -37,7 +42,6 @@ def login(request: Request, username: str, password: str):
 @app.get("/chat")
 def chat(request: Request, data: str = ""):
     #-1:重新登陆， #0:请求错误 、#1：成功
-    print("欢迎来到lane的chatGPT")
     return_dict={"status":"0", "messages":"", "content":""}
     try:
         prompt = json.loads(data)["prompt"]
@@ -56,11 +60,33 @@ def chat(request: Request, data: str = ""):
     mb.add_content(prompt, "user")
     response = mb.chat()
     content = mb.parse_response(response)
+    print(content)
     request.session.update({"member_str": mb.class2jsonstr()})
     return_dict["status"] = "1"
     return_dict["content"] = content
     return json.dumps(return_dict)
 
+@app.post("/chat_audio")
+async def chat_audio(request: Request, audio: UploadFile=File(..., media_type="audio/webm")):
+    # 必须传入ogg或者webm格式，wav和mp3都没办法正确保存
+    member_str = request.session["member_str"]
+    member = json.loads(member_str)
+    mb = Member(member["name"])
+    mb.update(member)
+
+    contents = await audio.read()
+    with open(audio.filename, "wb") as f:
+        f.write(contents)
+    
+    with open(audio.filename, "rb") as audio:
+        transcript = mb.speech2text(audio)
+    text = transcript["text"] 
+    text = convert(text, 'zh-cn') # 繁体中文转简体中文
+    return chat(request, json.dumps({"prompt":text}))
+
+@app.get("/test")
+def test(request: Request):
+    return templates.TemplateResponse("test.html", {"request": request})
 
 @app.get("/")
 def homepage(request: Request, messages: str = ""):

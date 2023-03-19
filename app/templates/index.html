@@ -31,8 +31,26 @@
     -->
     <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
     <script src="../static/plugins/nprogress/nprogress.js"></script>
-
+    <!-- <script type="module" src="../static/js/marked.min.js"></script> -->
+    <!-- <script src="https://github.com/millerblack/markdown-js"></script> -->
     <style>
+        pre {
+            background-color: #f4f4f4;
+            padding: 10px;
+            border-radius: 3px;
+            font-family: "Courier New", monospace;
+            font-size: 14px;
+            line-height: 1.5;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        pre code {
+            padding: 0;
+            background-color: transparent;
+            border: none;
+        }
+
         .manageshow {
             display: none;
         }
@@ -50,8 +68,7 @@
         }
 
         #messages_div {
-            height: 85%;
-            border: 1px solid black;
+            /* height: 85%; */
             overflow: scroll;
             margin-bottom: 5px;
             max-height: 60%;
@@ -62,9 +79,47 @@
 
         }
 
+        #audio2text {
+            float: left;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            height: 100%;
+            margin-left: 10px;
+            margin-right: 10px;
+        }
+
+        #audiopng {
+            width: 20px;
+            height: 20px;
+            display: inline-block;
+            background-image: url(../static/images/yuyin.png);
+            background-size: cover;
+            border-radius: 5px;
+            text-align: center;
+            line-height: 40px;
+            cursor: pointer;
+        }
+
+        #audiopng:active {
+            background-color: gray;
+            color: white;
+        }
+
+        #audio_div {
+            float: left;
+            display: none;
+            width: 80%;
+        }
+
+        #recordButton {
+            display: block;
+            margin: 0 auto;
+        }
+
         #messages_input {
             overflow: scroll;
-            width: 90%;
+            width: 80%;
             float: left;
             height: 100%;
         }
@@ -341,27 +396,17 @@
             </div>
 
             <div class="content-wrapper">
-                <div id="chat_div" , class="card content-wrapper card-table-border-none">
-                    <div id="messages_div"></div>
-                    <div id="edit_div">
-                        <textarea type="text" , class="" , id="messages_input" placeholder="请输入"></textarea>
-                        <button type="button" class="mb-1 btn btn-primary" id="sent_button">发送</button>
-                    </div>
-                </div>
-
+                <div id="messages_div"></div>
             </div>
             <footer class="footer mt-auto">
-                <div class="copyright bg-white">
-                    <p>
-                        &copy; <span id="copy-year">2019</span> Copyright data farmer by
-                        <a class="text-primary" href="http://www.bilibili.com/" target="_blank">laneeee</a>.
-                    </p>
+                <div id="audio2text">
+                    <button id="audiopng" onclick="toggleInput()"></button>
                 </div>
-                <script>
-                    var d = new Date();
-                    var year = d.getFullYear();
-                    document.getElementById("copy-year").innerHTML = year;
-                </script>
+                <div id="audio_div">
+                    <button id="recordButton">开始录制</button>
+                </div>
+                <textarea type="text" , class="" , id="messages_input" placeholder="请输入"></textarea>
+                <button type="button" class="mb-1 btn btn-primary" id="sent_button" value="text">发送</button>
             </footer>
 
         </div>
@@ -391,7 +436,7 @@
     <script>
         var pageHeight = Math.max($('body').height(), $('body')[0].scrollHeight, $('body')[0].offsetHeight, $(window).height(), $(document).height());
 
-        $("#messages_div").css("max-height", pageHeight * 0.6 + "px")
+        $("#messages_div").css("max-height", pageHeight * 0.8 + "px")
     </script>
 
     <!--个人信息-->
@@ -457,40 +502,210 @@
 
     <!--对话系统-->
     <script>
-
+        function delay(time) {
+            return new Promise(resolve => {
+                setTimeout(() => {
+                    // 添加您想要执行的操作
+                    resolve();
+                }, time);
+            });
+        }
 
         $(document).ready(function () {
             $('#sent_button').click(function () {
-                var chat_message = $('#messages_input').val();
-                $('#messages_div').append('<div class="user_div"><div class="user_content">' + chat_message + '</div></div>')
-                $('#messages_input').val("")
-                var data = JSON.stringify({
-                    "prompt": chat_message,
-                });
-                $.ajax({
-                    url: "/chat?data=" + data,
-                    type: "GET",
-                    success: function (res) {
-                        var obj = JSON.parse(res);
-                        var status = obj.status;
-                        var messages = obj.messages;
-                        var content = obj.content;
-                        if (status == "-1") {
-                            location.href = "/?messages=" + messages;
-                        } else if (status == "0") {
-                            alert(messages)
-                        }
-                        else if (status == "1") {
-                            $('#messages_div').append('<div class="assistant_div"><div class="assistant_content">' + content + '</div></div>')
-                        }
-                        else { alert("未知错误") }
-                    },
-                    error: function () {
-                        alert("响应失败");
+                var mode = $('#sent_button').val();
+                if (mode === "audio") {
+                    // mediaRecorder.stop();
+                    if (recordButton.textContent !== '开始录制') {
+                        resetTimer();
+                        mediaRecorder.stop();
+                        // 等待mediaRecorder.stop();事件执行完后，执行下一步操作
                     }
-                })
+                    delay(100).then(() => {
+                        if (audioChunks.length === 0) {
+                            return
+                        }
+                        const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                        const audioUrl = URL.createObjectURL(audioBlob);
+                        audioChunks = [];
+                        $('#messages_div').append('<div class="user_div"><div class="user_content"><audio id="audio" src="' + audioUrl + '" controls></audio></div></div>')
+                        var formData = new FormData();
+                        formData.append("audio", audioBlob, "audio.webm");
+                        $.ajax({
+                            url: '/chat_audio',
+                            type: 'POST',
+                            data: formData,
+                            processData: false,
+                            contentType: false,
+                            success: function (res) {
+                                var obj = JSON.parse(res);
+                                var status = obj.status;
+                                var messages = obj.messages;
+                                var content = obj.content;
+                                if (status == "-1") {
+                                    location.href = "/?messages=" + messages;
+                                } else if (status == "0") {
+                                    alert(messages)
+                                }
+                                else if (status == "1") {
+                                    $('#messages_div').append('<div class="assistant_div"><div class="assistant_content">' + convertTextToHTML(content) + '</div></div>')
+                                }
+                                else { alert("未知错误") }
+
+                            },
+                            error: function (err) {
+                                console.log(err);
+                                alert('上传失败');
+                            }
+                        });
+                    });
+
+                }
+                else {
+                    var chat_message = $('#messages_input').val();
+                    $('#messages_div').append('<div class="user_div"><div class="user_content">' + chat_message + '</div></div>')
+                    $('#messages_input').val("")
+                    var data = JSON.stringify({
+                        "prompt": chat_message,
+                    });
+                    $.ajax({
+                        url: "/chat?data=" + data,
+                        type: "GET",
+                        success: function (res) {
+                            console.log(res);
+                            var obj = JSON.parse(res);
+                            var status = obj.status;
+                            var messages = obj.messages;
+                            var content = obj.content;
+                            if (status == "-1") {
+                                location.href = "/?messages=" + messages;
+                            } else if (status == "0") {
+                                alert(messages)
+                            }
+                            else if (status == "1") {
+                                $('#messages_div').append('<div class="assistant_div"><div class="assistant_content">' + convertTextToHTML(content) + '</div></div>')
+                            }
+                            else { alert("未知错误") }
+                        },
+                        error: function () {
+                            alert("响应失败");
+                        }
+                    })
+                }
+
             })
         })
+
+        function convertTextToHTML(text) {
+            // 将换行符转换为HTML的换行标签
+            text = text.replace(/\n/g, '<br>');
+            // 将代码块用pre标签包裹，并设置样式
+            text = text.replace(/```([\s\S]*?)```/g, '<pre>$1</pre>');
+            // 返回HTML字符串
+            return text;
+        }
+
+    </script>
+
+    <!-- 语音 -->
+    <script>
+        // const marked = require('marked');
+        // import marked from "marked";
+        // console.log(marked('# Hello, Markdown!'));
+        function toggleInput() {
+            var messages_input = document.getElementById("messages_input");
+            var audiopng = document.getElementById("audiopng");
+            var audio_div = document.getElementById("audio_div");
+            var recordButton = document.getElementById("recordButton");
+            var sent_button = document.getElementById("sent_button");
+            var status = 0;
+            if (messages_input.style.display === "none") {
+                audiopng.style.backgroundImage = "url(../static/images/yuyin.png)";
+                messages_input.style.display = "block";
+                audio_div.style.display = "none";
+                recordButton.style.display = "none";
+                sent_button.value = "text";
+
+                if (mediaRecorder.state === 'recording') {
+                    mediaRecorder.stop()
+                    resetTimer();
+                    audioChunks = []
+                }
+            } else {
+                getMicrophonePermission().catch(function (err) {
+                    alert('Error:获取麦克风权限失败！');
+                    return;
+                });
+                audiopng.style.backgroundImage = "url(../static/images/jianpan.png)";
+                messages_input.style.display = "none";
+                audio_div.style.display = "block";
+                recordButton.style.display = "block";
+                sent_button.value = "audio";
+            }
+        }
+
+
+        // 在这里编写JavaScript代码
+        let timer;
+
+        function startTimer() {
+            const recordButton = document.getElementById('recordButton');
+            recordButton.innerText = '60';
+            let countDown = 60;
+
+            mediaRecorder.start();
+
+            timer = setInterval(() => {
+                countDown--;
+                recordButton.innerText = countDown;
+                if (countDown === 0) {
+                    mediaRecorder.stop();
+                    clearInterval(timer);
+                    recordButton.innerText = '开始录制';
+                }
+            }, 1000);
+        }
+
+        function resetTimer() {
+            clearInterval(timer);
+            const recordButton = document.getElementById('recordButton');
+            recordButton.innerText = '开始录制';
+        }
+
+        const recordButton = document.getElementById('recordButton');
+        let mediaRecorder;
+        let audioChunks = [];
+        document.addEventListener('DOMContentLoaded', () => {
+            navigator.mediaDevices.getUserMedia({ audio: true })
+                .then(stream => {
+                    mediaRecorder = new MediaRecorder(stream);
+                    mediaRecorder.addEventListener('dataavailable', event => {
+                        audioChunks.push(event.data);
+                    });
+                    mediaRecorder.addEventListener('stop', () => {
+                        const blob = new Blob(audioChunks, { type: 'audio/webm' });
+                        const url = URL.createObjectURL(blob);
+
+                    });
+                });
+            recordButton.addEventListener('click', () => {
+                if (recordButton.innerText === '开始录制') {
+                    audioChunks = [];
+                    startTimer();
+                    // 开始录制
+
+                } else {
+                    // 停止录制
+                    resetTimer();
+                    mediaRecorder.stop();
+                }
+            });
+        });
+
+
+        async function getMicrophonePermission() {
+            return await navigator.mediaDevices.getUserMedia({ audio: true })
+        }
     </script>
 
     <script>

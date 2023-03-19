@@ -1,5 +1,7 @@
-uvicorn
-starlette-session
+openai
 fastapi
 Jinja2
-openai
+uvicorn
+starlette-session
+python-multipart
+zhconv

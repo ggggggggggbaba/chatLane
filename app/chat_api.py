@@ -66,12 +66,16 @@ class Member:
         completion = openai.ChatCompletion.create(
             model=model_engine,
             messages=self.messages,
-            max_tokens=128,  # 控制response中最大可用令牌
+            max_tokens=1024,  # 控制response中最大可用令牌
             n=1,
-            temperature=0.5,
+            temperature=0.5, # 控制输出的随机性
             top_p=1,
         )
         return completion
+    
+    def speech2text(self, audio):
+        transcript = openai.Audio.transcribe("whisper-1", audio)
+        return  transcript
 
     def add_content(self, prompt, role="user"):
         if len(self.messages) > self.max_communication * 2:
