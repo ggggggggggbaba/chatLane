@@ -11,7 +11,7 @@ import html
 from chat_api import Member
 import os
 from zhconv import convert
-import chardet
+
 
 
 # Config
