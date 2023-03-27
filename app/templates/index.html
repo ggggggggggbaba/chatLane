@@ -438,6 +438,20 @@
 
         $("#messages_div").css("max-height", pageHeight * 0.6 + "px")
     </script>
+    <script>
+        function generateUUID() {
+            let d = new Date().getTime();
+            if (typeof performance !== 'undefined' && typeof performance.now === 'function') {
+                d += performance.now();
+            }
+            return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+                let r = (d + Math.random() * 16) % 16 | 0;
+                d = Math.floor(d / 16);
+                return (c == 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+            });
+        }
+
+    </script>
 
     <!--个人信息-->
     <script>
@@ -502,6 +516,7 @@
 
     <!--对话系统-->
     <script>
+        
         function delay(time) {
             return new Promise(resolve => {
                 setTimeout(() => {
@@ -510,7 +525,14 @@
                 }, time);
             });
         }
-
+        var message_list = []
+        function add_content(prompt, role){
+            max_communication = 3;
+            if(message_list.length > max_communication *2){
+                message_list.splice(0, 2);
+            }
+            message_list.push({'role': role, 'content': prompt})
+        }
         $(document).ready(function () {
             $('#sent_button').click(function () {
                 var mode = $('#sent_button').val();
@@ -562,35 +584,57 @@
 
                 }
                 else {
-                    var chat_message = $('#messages_input').val();
-                    $('#messages_div').append('<div class="user_div"><div class="user_content">' + chat_message + '</div></div>')
+                    var prompt = $('#messages_input').val();
+                    $('#messages_div').append('<div class="user_div"><div class="user_content">' + prompt + '</div></div>')
                     $('#messages_input').val("")
+                    add_content(prompt, "user")
                     var data = JSON.stringify({
-                        "prompt": chat_message,
+                        "messages": message_list
                     });
-                    $.ajax({
-                        url: "/chat?data=" + data,
-                        type: "GET",
-                        success: function (res) {
-                            console.log(res);
-                            var obj = JSON.parse(res);
-                            var status = obj.status;
-                            var messages = obj.messages;
-                            var content = obj.content;
-                            if (status == "-1") {
-                                location.href = "/?messages=" + messages;
-                            } else if (status == "0") {
-                                alert(messages)
-                            }
-                            else if (status == "1") {
-                                $('#messages_div').append('<div class="assistant_div"><div class="assistant_content">' + convertTextToHTML(content) + '</div></div>')
-                            }
-                            else { alert("未知错误") }
-                        },
-                        error: function () {
-                            alert("响应失败");
+                    var url = "/stream?data=" + data
+                    const xhr = new XMLHttpRequest();
+                    // xhr.setRequestHeader('Accept', 'text/plain');
+                    xhr.responseType = 'text';
+                    var uuid = generateUUID();
+                    $('#messages_div').append('<div class="assistant_div"><div class="assistant_content" id="' + uuid + '">...</div></div>')
+                    let status = document.getElementById(uuid);
+                    var responseText;
+                    xhr.onreadystatechange = function () {
+                        if (xhr.readyState === XMLHttpRequest.HEADERS_RECEIVED) {
+                            $('#' + uuid).innerHTML = "recive"
                         }
-                    })
+
+                        if (xhr.readyState === XMLHttpRequest.LOADING) {
+                            let responseTextChunk = xhr.responseText;
+                            responseText+=responseTextChunk;
+                            status.innerHTML = convertTextToHTML(responseTextChunk);
+                        }
+
+                        if (xhr.readyState === XMLHttpRequest.DONE) {
+                            // status.innerHTML += "Done.";
+                            add_content(responseText, "assistant")
+                        }
+                    };
+                    xhr.open('GET', url, true);
+                    xhr.send();
+
+                    function handleResponse(response) {
+                        console.log(response);
+
+                        var obj = JSON.parse(response);
+                        var status = obj.status;
+                        var messages = obj.messages;
+                        var content = obj.content;
+                        if (status == "-1") {
+                            location.href = "/?messages=" + messages;
+                        } else if (status == "0") {
+                            alert(messages)
+                        }
+                        else if (status == "1") {
+                            $('#messages_div').append('<div class="assistant_div"><div class="assistant_content">' + convertTextToHTML(content) + '</div></div>')
+                        }
+                        else { alert("未知错误") }
+                    }
                 }
 
             })
@@ -611,9 +655,6 @@
 
     <!-- 语音 -->
     <script>
-        // const marked = require('marked');
-        // import marked from "marked";
-        // console.log(marked('# Hello, Markdown!'));
         function toggleInput() {
             var messages_input = document.getElementById("messages_input");
             var audiopng = document.getElementById("audiopng");
@@ -655,8 +696,6 @@
             recordButton.innerText = '60';
             let countDown = 60;
 
-            mediaRecorder.start();
-
             timer = setInterval(() => {
                 countDown--;
                 recordButton.innerText = countDown;
@@ -677,25 +716,25 @@
         const recordButton = document.getElementById('recordButton');
         let mediaRecorder;
         let audioChunks = [];
-        document.addEventListener('DOMContentLoaded', () => {
-            navigator.mediaDevices.getUserMedia({ audio: true })
-                .then(stream => {
-                    mediaRecorder = new MediaRecorder(stream);
-                    mediaRecorder.addEventListener('dataavailable', event => {
-                        audioChunks.push(event.data);
-                    });
-                    mediaRecorder.addEventListener('stop', () => {
-                        const blob = new Blob(audioChunks, { type: 'audio/webm' });
-                        const url = URL.createObjectURL(blob);
 
-                    });
-                });
+        document.addEventListener('DOMContentLoaded', () => {
             recordButton.addEventListener('click', () => {
                 if (recordButton.innerText === '开始录制') {
                     audioChunks = [];
                     startTimer();
-                    // 开始录制
+                    navigator.mediaDevices.getUserMedia({ audio: true })
+                        .then(stream => {
+                            mediaRecorder = new MediaRecorder(stream);
+                            mediaRecorder.addEventListener('dataavailable', event => {
+                                audioChunks.push(event.data);
+                            });
+                            mediaRecorder.addEventListener('stop', () => {
+                                const blob = new Blob(audioChunks, { type: 'audio/webm' });
+                                const url = URL.createObjectURL(blob);
 
+                            });
+                            mediaRecorder.start();
+                        });
                 } else {
                     // 停止录制
                     resetTimer();
@@ -703,6 +742,7 @@
                 }
             });
         });
+
 
 
         async function getMicrophonePermission() {

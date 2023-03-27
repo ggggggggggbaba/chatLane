@@ -1,5 +1,7 @@
+from urllib import response
 import openai
 import json
+import asyncio
 
 openai.api_key = "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"
 model_list = ["gpt-3.5-turbo", "text-davinci-003"]
@@ -61,17 +63,19 @@ class Member:
 
 
 # chatGPT_v1只能进行一句话的问答，无法有多句话的对话，token数量比chatGPT_v2要少，但是单价要贵10%
-def chatGPT(messages):
+async def chatGPT(messages):
     model_engine = model_list[0]
-    completion = openai.ChatCompletion.create(
+    response = await openai.ChatCompletion.create(
         model=model_engine,
         messages=messages,
-        max_tokens=128,  # 控制response中最大可用令牌
-        n=1,
-        temperature=0.5,
-        top_p=1,
+        max_tokens=1024,  # 控制response中最大可用令牌
+        stream= True,
+        # stop=None
     )
-    return completion
+    print(response)
+    for chunk in response.choices:
+        yield chunk
+
 
 
 def add_content(messages, prompt, role="user"):
@@ -98,6 +102,9 @@ def parse_response(response):
     print(response_content)
     return response_content
 
+async def my_function(messages):
+    async for result in chatGPT(messages):
+        print(result)
 
 mb = Member(ChatLane_Member_NAME)
 
@@ -112,7 +119,8 @@ if __name__ == '__main__':
         if prompt == ChatLane_STOP:
             break
         add_content(messages, prompt, "user")
-        response = chatGPT(messages)
-        content = parse_response(response)
-        add_content(messages, content, "assistant")
+        asyncio.run(my_function(messages))
+        
+        # content = parse_response(response)
+        # add_content(messages, content, "assistant")
     mb.print_member()

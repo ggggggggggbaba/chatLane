@@ -2,7 +2,7 @@ import openai
 import json
 
 
-openai.api_key = "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"
+openai.api_key = "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"
 model_list = ["gpt-3.5-turbo", "text-davinci-003"]
 ChatLane_SMART = False
 ChatLane_STOP = "exit"

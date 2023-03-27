@@ -1,9 +1,9 @@
 # -*- coding: UTF-8 -*-
 import json
 import uvicorn
-from fastapi import Request, FastAPI, File, UploadFile
+from fastapi import Request, FastAPI, File, UploadFile, Response, status 
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
+from fastapi.responses import StreamingResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import RedirectResponse
 from starlette_session import SessionMiddleware
@@ -11,6 +11,8 @@ import html
 from chat_api import Member
 import os
 from zhconv import convert
+import asyncio
+from httpx import AsyncClient, Proxy, HTTPError
 
 
 
@@ -38,33 +40,89 @@ def login(request: Request, username: str, password: str):
 
     return RedirectResponse("/?messages=账号或密码错误")
 
-
-@app.get("/chat")
-def chat(request: Request, data: str = ""):
+# stream route
+@app.get("/stream")
+async def stream_response(request: Request, data: str = ""):
     #-1:重新登陆， #0:请求错误 、#1：成功
     return_dict={"status":"0", "messages":"", "content":""}
     try:
-        prompt = json.loads(data)["prompt"]
-        member_str = request.session["member_str"]
-        member = json.loads(member_str)
-        mb = Member(member["name"])
-        mb.update(member)
+        messages = json.loads(data)["messages"]
+        mb = Member("eva")
+        mb.messages = messages
     except:
         return_dict["status"] = "-1"
         return_dict["messages"]="请先登陆"
-        return json.dumps(return_dict)
-
+        return StreamingResponse(content=json.dumps(return_dict), media_type='text/event-stream')
     if not mb.check_member():
         return_dict["messages"] = "该账户无法享受服务"
-        return json.dumps(return_dict)
+        return StreamingResponse(content=json.dumps(return_dict), media_type='text/event-stream')
+
+    return StreamingResponse(chat_stream(request, mb), media_type='text/event-stream')
+
+
+async def chat_stream(request, mb):
+    url = 'https://api.openai.com/v1/chat/completions'
+    headers = {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer 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'
+    }
+    data = {
+        "model": "gpt-3.5-turbo",
+        "messages": mb.messages,
+        "stream": True
+    }
+    proxy = "http://127.0.0.1:16005"
+    content = ""
+    try:
+        async with AsyncClient(headers=headers, proxies=Proxy(proxy)) as client:
+            # async with client.post(url, json=data) as response:            
+            async with client.stream("POST", url=url, json=data) as stream:
+                tail = ""
+                async for chunk in stream.aiter_bytes(1024):
+                    decode_chunk = chunk.decode('utf-8')
+                    decode_chunk = tail+decode_chunk
+                    packages = decode_chunk.split('\n')
+                    tail = packages[-1]
+                    content_chunk = chunk_parse(packages[:-1])
+                    # content+=content_chunk
+                    yield content_chunk
+    except HTTPError as e:
+      # 在这里进行自定义处理
+      print(f"openai 相应超时，自定义处理，Error occurred: {e}")
+    
+    # mb.add_content(content, "assistant")
+    # request.session.update({"member_str": mb.class2jsonstr()})
+
+def chunk_parse(packages):
+      content = ""
+      for i in range(len(packages)):
+        res_content = packages[i]
+        if "data" == res_content[:4]:  
+          json_str = res_content.split(": ", 1)[1]
+          if "[DONE]" == json_str:
+            continue
+          try:
+            response_dict = json.loads(json_str)
+          except ValueError:
+              print("Error: Unable to parse JSON from content:", content)
+              print("Error: Unable to parse JSON from res_content:", res_content)
+              continue
+          if 'content' in response_dict['choices'][0]['delta'].keys():
+            content+=response_dict['choices'][0]['delta']['content']
+
+          # print("index= ",i, " content= ",response_dict)
+      return content
+
+async def chat(request, mb , prompt):
     mb.add_content(prompt, "user")
     response = mb.chat()
     content = mb.parse_response(response)
-    print(content)
+    # print(content)
     request.session.update({"member_str": mb.class2jsonstr()})
-    return_dict["status"] = "1"
-    return_dict["content"] = content
-    return json.dumps(return_dict)
+    for i in range(0, len(content), 100):
+        yield content[i:i+100].encode()
+        await asyncio.sleep(1)
+
 
 @app.post("/chat_audio")
 async def chat_audio(request: Request, audio: UploadFile=File(..., media_type="audio/webm")):
