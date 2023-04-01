@@ -132,6 +132,11 @@
             height: 100%;
         }
 
+        #edit_div {
+            flex: 1;/*占据剩余空间*/
+            margin-top: auto;/*置于页面底部*/
+        }
+
         .assistant_div {
             width: 100%;
             height: auto;
@@ -398,7 +403,7 @@
             <div class="content-wrapper">
                 <div id="messages_div"></div>
             </div>
-            <footer class="footer mt-auto">
+            <div class="edit_div">
                 <div id="audio2text">
                     <button id="audiopng" onclick="toggleInput()"></button>
                 </div>
@@ -407,7 +412,7 @@
                 </div>
                 <textarea type="text" , class="" , id="messages_input" placeholder="请输入"></textarea>
                 <button type="button" class="mb-1 btn btn-primary" id="sent_button" value="text">发送</button>
-            </footer>
+            </div>
 
         </div>
     </div>

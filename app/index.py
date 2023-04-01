@@ -80,7 +80,6 @@ async def chat_stream(session, mb):
                 tail = ""
                 buffer=bytes()
                 async for chunk in stream.aiter_bytes(512):
-                    print(chunk)
                     buffer+=chunk
                     try:
                         decode_chunk = buffer.decode('utf-8')
