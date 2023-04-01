@@ -64,7 +64,7 @@ async def chat_stream(session, mb):
     url = 'https://api.openai.com/v1/chat/completions'
     headers = {
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer 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'
+        'Authorization': 'Bearer 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'
     }
     data = {
         "model": "gpt-3.5-turbo",
@@ -80,6 +80,7 @@ async def chat_stream(session, mb):
                 tail = ""
                 buffer=bytes()
                 async for chunk in stream.aiter_bytes(512):
+                    print(chunk)
                     buffer+=chunk
                     try:
                         decode_chunk = buffer.decode('utf-8')
