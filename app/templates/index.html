@@ -435,8 +435,8 @@
 
     <script>
         var pageHeight = Math.max($('body').height(), $('body')[0].scrollHeight, $('body')[0].offsetHeight, $(window).height(), $(document).height());
-
         $("#messages_div").css("max-height", pageHeight * 0.6 + "px")
+
     </script>
     <script>
         function generateUUID() {
@@ -516,7 +516,25 @@
 
     <!--对话系统-->
     <script>
-        
+        // 获取 sendButton 元素和 inputBox 元素
+        const sendButton = document.getElementById("sent_button");
+        const inputBox = document.getElementById("messages_input");
+
+        // 监听 inputBox 的 keydown 事件
+        inputBox.addEventListener("keydown", function (event) {
+            if (event.keyCode === 13 && !event.shiftKey) { // 按下回车键且没有按下 shift 键
+                event.preventDefault(); // 阻止默认的换行行为
+                sendButton.click(); // 触发 click 事件
+            }
+        });
+
+        // 监听 inputBox 的 keyup 事件
+        inputBox.addEventListener("keyup", function (event) {
+            if (event.keyCode === 13 && event.shiftKey) { // 按下回车键且同时按下 shift 键
+                inputBox.value += "\n"; // 在输入框中添加一个换行符
+            }
+        });
+
         function delay(time) {
             return new Promise(resolve => {
                 setTimeout(() => {
@@ -525,14 +543,7 @@
                 }, time);
             });
         }
-        var message_list = []
-        function add_content(prompt, role){
-            max_communication = 3;
-            if(message_list.length > max_communication *2){
-                message_list.splice(0, 2);
-            }
-            message_list.push({'role': role, 'content': prompt})
-        }
+
         $(document).ready(function () {
             $('#sent_button').click(function () {
                 var mode = $('#sent_button').val();
@@ -587,54 +598,39 @@
                     var prompt = $('#messages_input').val();
                     $('#messages_div').append('<div class="user_div"><div class="user_content">' + prompt + '</div></div>')
                     $('#messages_input').val("")
-                    add_content(prompt, "user")
                     var data = JSON.stringify({
-                        "messages": message_list
+                        "prompt": prompt
                     });
                     var url = "/stream?data=" + data
                     const xhr = new XMLHttpRequest();
+                    xhr.open('GET', url, true);
+                    xhr.withCredentials = true;
+                    // xhr.setRequestHeader('Cookie', `my_cookie=${cookieValue}`);  // 添加Cookie到请求头
                     // xhr.setRequestHeader('Accept', 'text/plain');
                     xhr.responseType = 'text';
                     var uuid = generateUUID();
                     $('#messages_div').append('<div class="assistant_div"><div class="assistant_content" id="' + uuid + '">...</div></div>')
                     let status = document.getElementById(uuid);
                     var responseText;
+                    $("#sent_button").prop("disabled", true);
+                    const scrollContainer = document.getElementById("messages_div");
                     xhr.onreadystatechange = function () {
                         if (xhr.readyState === XMLHttpRequest.HEADERS_RECEIVED) {
                             $('#' + uuid).innerHTML = "recive"
                         }
-
                         if (xhr.readyState === XMLHttpRequest.LOADING) {
                             let responseTextChunk = xhr.responseText;
-                            responseText+=responseTextChunk;
+                            responseText += responseTextChunk;
                             status.innerHTML = convertTextToHTML(responseTextChunk);
+                            scrollContainer.scrollTop = scrollContainer.scrollHeight;
                         }
 
                         if (xhr.readyState === XMLHttpRequest.DONE) {
-                            // status.innerHTML += "Done.";
-                            add_content(responseText, "assistant")
+                            $("#sent_button").prop("disabled", false);
                         }
                     };
-                    xhr.open('GET', url, true);
+
                     xhr.send();
-
-                    function handleResponse(response) {
-                        console.log(response);
-
-                        var obj = JSON.parse(response);
-                        var status = obj.status;
-                        var messages = obj.messages;
-                        var content = obj.content;
-                        if (status == "-1") {
-                            location.href = "/?messages=" + messages;
-                        } else if (status == "0") {
-                            alert(messages)
-                        }
-                        else if (status == "1") {
-                            $('#messages_div').append('<div class="assistant_div"><div class="assistant_content">' + convertTextToHTML(content) + '</div></div>')
-                        }
-                        else { alert("未知错误") }
-                    }
                 }
 
             })

@@ -49,13 +49,15 @@ class Member:
     def load_member(self):
         with open(self.json_path, "r") as f:
             js = json.load(f)
-            self.max_token = js["max_token"]
-            self.used_token = js["used_token"]
+        # self.max_token = js["max_token"]
+        # self.used_token = js["used_token"]
+        self.update(js)
 
     def save_member(self):
         member_map = {
             "max_token": self.max_token,
-            "used_token": self.used_token
+            "used_token": self.used_token,
+            "messages": self.messages
         }
         with open(self.json_path, "w") as f:
             json.dump(member_map, f)
@@ -85,8 +87,6 @@ class Member:
                 self.messages = self.messages[2:]
         self.messages.append({"role": role, "content": prompt})
             
-
-
 
     def parse_response(self, response):
         total_tokens = response.usage.total_tokens

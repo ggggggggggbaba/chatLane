@@ -1,20 +1,18 @@
 # -*- coding: UTF-8 -*-
 import json
 import uvicorn
-from fastapi import Request, FastAPI, File, UploadFile, Response, status 
+from fastapi import FastAPI, File, UploadFile, Depends
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import StreamingResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import RedirectResponse
-from starlette_session import SessionMiddleware
-import html
+from starlette.middleware.sessions import SessionMiddleware
+from starlette.requests import Request
 from chat_api import Member
-import os
 from zhconv import convert
-import asyncio
 from httpx import AsyncClient, Proxy, HTTPError
-
-
+import secrets
+import asyncio
 
 # Config
 Members_list = {"eva": ["123", "../members/eva.json"]}
@@ -24,31 +22,31 @@ app.mount("/static", StaticFiles(directory="./static"), name="static")
 templates = Jinja2Templates(directory="templates")
 app.add_middleware(
     SessionMiddleware,
-    secret_key="secret",
-    cookie_name="cookie22",
+    secret_key="laneeee"
 )
+def get_session(request: Request):
+    return request.session
 
 
 @app.get("/login")
-def login(request: Request, username: str, password: str):
+def login(request: Request, username: str, password: str, session=Depends(get_session)):
     if username in Members_list.keys():
         if password == Members_list[username][0]:
-            mb = Member(username)
-            member_str=mb.class2jsonstr()
-            request.session.update({"member_str": member_str})
-            return templates.TemplateResponse("index.html", {"request": request, "member_str":member_str})
-
+            session["messages"] = []
+            session["username"] = username
+            return templates.TemplateResponse("index.html", {"request": request})
     return RedirectResponse("/?messages=账号或密码错误")
 
 # stream route
 @app.get("/stream")
-async def stream_response(request: Request, data: str = ""):
+async def stream_response(request: Request, data: str = "", session=Depends(get_session)):
     #-1:重新登陆， #0:请求错误 、#1：成功
     return_dict={"status":"0", "messages":"", "content":""}
     try:
-        messages = json.loads(data)["messages"]
-        mb = Member("eva")
-        mb.messages = messages
+        prompt = json.loads(data)["prompt"]
+        mb = Member(session["username"])
+        mb.load_member()
+        mb.add_content(prompt, role="user")
     except:
         return_dict["status"] = "-1"
         return_dict["messages"]="请先登陆"
@@ -57,10 +55,12 @@ async def stream_response(request: Request, data: str = ""):
         return_dict["messages"] = "该账户无法享受服务"
         return StreamingResponse(content=json.dumps(return_dict), media_type='text/event-stream')
 
-    return StreamingResponse(chat_stream(request, mb), media_type='text/event-stream')
+    response = StreamingResponse(chat_stream(session, mb), media_type='text/event-stream')
+    return response
 
 
-async def chat_stream(request, mb):
+async def chat_stream(session, mb):
+    # print(session)
     url = 'https://api.openai.com/v1/chat/completions'
     headers = {
         'Content-Type': 'application/json',
@@ -72,26 +72,38 @@ async def chat_stream(request, mb):
         "stream": True
     }
     proxy = "http://127.0.0.1:16005"
-    content = ""
+    content=""
     try:
         async with AsyncClient(headers=headers, proxies=Proxy(proxy)) as client:
             # async with client.post(url, json=data) as response:            
             async with client.stream("POST", url=url, json=data) as stream:
                 tail = ""
-                async for chunk in stream.aiter_bytes(1024):
-                    decode_chunk = chunk.decode('utf-8')
+                buffer=bytes()
+                async for chunk in stream.aiter_bytes(512):
+                    buffer+=chunk
+                    try:
+                        decode_chunk = buffer.decode('utf-8')
+                    except UnicodeDecodeError as e:
+                        print(f"buffer.decode UnicodeDecodeError")
+                        continue
                     decode_chunk = tail+decode_chunk
                     packages = decode_chunk.split('\n')
                     tail = packages[-1]
                     content_chunk = chunk_parse(packages[:-1])
-                    # content+=content_chunk
+                    content+=content_chunk
                     yield content_chunk
-    except HTTPError as e:
-      # 在这里进行自定义处理
+                    # await asyncio.sleep(0) # 强制异步上下文转换来处理其他任务
+                    buffer = bytes()
+                await asyncio.sleep(0)
+                content_chunk = chunk_parse(tail)
+                content+=content_chunk
+                yield content_chunk
+    except HTTPError as e: # 在这里进行自定义处理
+      content_chunk = "openai 相应超时"
+      yield content_chunk
       print(f"openai 相应超时，自定义处理，Error occurred: {e}")
-    
-    # mb.add_content(content, "assistant")
-    # request.session.update({"member_str": mb.class2jsonstr()})
+    mb.add_content(content, role="assistant")
+    mb.save_member()
 
 def chunk_parse(packages):
       content = ""
@@ -121,7 +133,7 @@ async def chat(request, mb , prompt):
     request.session.update({"member_str": mb.class2jsonstr()})
     for i in range(0, len(content), 100):
         yield content[i:i+100].encode()
-        await asyncio.sleep(1)
+        
 
 
 @app.post("/chat_audio")
