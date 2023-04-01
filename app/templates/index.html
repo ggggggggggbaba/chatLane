@@ -400,9 +400,9 @@
                 </div>
             </div>
 
-            <div class="content-wrapper">
+            <!-- <div class="content-wrapper"> -->
                 <div id="messages_div"></div>
-            </div>
+            <!-- </div> -->
             <div class="edit_div">
                 <div id="audio2text">
                     <button id="audiopng" onclick="toggleInput()"></button>
@@ -440,7 +440,7 @@
 
     <script>
         var pageHeight = Math.max($('body').height(), $('body')[0].scrollHeight, $('body')[0].offsetHeight, $(window).height(), $(document).height());
-        $("#messages_div").css("max-height", pageHeight * 0.6 + "px")
+        $("#messages_div").css("height", pageHeight * 1 + "px")
 
     </script>
     <script>

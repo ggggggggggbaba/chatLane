@@ -69,12 +69,13 @@ async def chat_stream(session, mb):
     data = {
         "model": "gpt-3.5-turbo",
         "messages": mb.messages,
-        "stream": True
+        "stream": True,
+        "max_tokens": 1024
     }
-    proxy = "http://127.0.0.1:16005"
+    # proxy = "http://127.0.0.1:16005"
     content=""
     try:
-        async with AsyncClient(headers=headers, proxies=Proxy(proxy)) as client:
+        async with AsyncClient(headers=headers) as client:
             # async with client.post(url, json=data) as response:            
             async with client.stream("POST", url=url, json=data) as stream:
                 tail = ""
